@@ -13,3 +13,4 @@
 *.a
 mkmf.log
 .idea
+bundler.d/Gemfile.local.rb
