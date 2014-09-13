@@ -1,3 +1,4 @@
+require 'smart_proxy_chef_plugin/foreman_api'
 require 'smart_proxy_chef_plugin/chef_api'
 
 map "/api" do
