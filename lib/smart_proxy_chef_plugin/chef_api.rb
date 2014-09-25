@@ -3,6 +3,8 @@ require 'smart_proxy_chef_plugin/resources/client'
 
 module ChefPlugin
   class ChefApi < ::Sinatra::Base
+    helpers ::Proxy::Helpers
+
     get "/nodes/:fqdn" do
       logger.debug "Showing node #{params[:fqdn]}"
 
