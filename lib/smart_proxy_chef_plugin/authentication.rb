@@ -1,29 +1,28 @@
 module ChefPlugin
   class Authentication
-    require 'chef'
+    require 'smart_proxy_chef_plugin/resources/client'
     require 'digest/sha2'
     require 'base64'
     require 'openssl'
 
     def verify_signature_request(client_name,signature,body)
-      #We need to retrieve node public key
+      #We need to retrieve client public key
       #to verify signature
-      chefurl = ChefPlugin::Plugin.settings.chef_server_url
-      chef_smartproxy_clientname = ChefPlugin::Plugin.settings.chef_smartproxy_clientname
-      key = ChefPlugin::Plugin.settings.chef_smartproxy_privatekey
-      rest = ::Chef::REST.new(chefurl,chef_smartproxy_clientname,key)
       begin
-        public_key = OpenSSL::PKey::RSA.new(rest.get_rest("/clients/#{client_name}").public_key)
+        client = Resources::Client.new.show(client_name)
       rescue Timeout::Error, Errno::EINVAL, Errno::ECONNRESET, EOFError,
         Net::HTTPBadResponse, Net::HTTPHeaderSyntaxError, Net::ProtocolError,
         Errno::ECONNREFUSED, OpenSSL::SSL::SSLError => e
-        raise Proxy::Error::Unauthorized, "Failed to authenticate node : "+e.message
+        raise Proxy::Error::Unauthorized, "Failed to authenticate node: "+e.message
       end
+
+      raise Proxy::Error::Unauthorized, "Could not find client with name #{client_name}" if client.nil?
+      public_key = OpenSSL::PKey::RSA.new(client.public_key)
 
       #signature is base64 encoded
       decoded_signature = Base64.decode64(signature)
       hash_body = Digest::SHA256.hexdigest(body)
-      public_key.verify(OpenSSL::Digest::SHA256.new,decoded_signature,hash_body)
+      public_key.verify(OpenSSL::Digest::SHA256.new, decoded_signature, hash_body)
     end
 
     def authenticated(request, &block)
@@ -35,7 +34,7 @@ module ChefPlugin
         signature   = request.env['HTTP_X_FOREMAN_SIGNATURE']
 
         raise Proxy::Error::Unauthorized, "Failed to authenticate node #{client_name}. Missing some headers" if client_name.nil? or signature.nil?
-        auth = verify_signature_request(client_name,signature,content)
+        auth = verify_signature_request(client_name, signature, content)
       end
 
       if auth
