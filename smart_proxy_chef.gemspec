@@ -27,7 +27,6 @@ Gem::Specification.new do |gem|
   gem.add_development_dependency('rack-test', '~> 0')
   gem.add_development_dependency('rake', '~> 10')
 
-  gem.add_runtime_dependency('chef', '>= 11.6.2')
   gem.add_runtime_dependency('chef-api')
 end
 
