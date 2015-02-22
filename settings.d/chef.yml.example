@@ -8,7 +8,7 @@
 # :chef_smartproxy_clientname: 'host.example.net'
 # :chef_smartproxy_privatekey: '/etc/chef/client.pem'
 
-# by default ssl verification of request to you chef server is enabled,
+# by default ssl verification of request to your chef server is enabled,
 # you're supposed to install CA certificate yourself
 # this usually consist of two steps
 #   download the CA cert to /etc/pki/tls/certs/, e.g. ca-cert-root.pem
