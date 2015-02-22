@@ -8,7 +8,7 @@ Gem::Specification.new do |gem|
   gem.version       = ChefPlugin::VERSION
   gem.authors       = ['Marek Hulan']
   gem.email         = ['mhulan@redhat.com']
-  gem.homepage      = "https://github.com/theforeman/smart-proxy-chef-plugin"
+  gem.homepage      = "https://github.com/theforeman/smart_proxy_chef"
   gem.summary       = %q{Chef support for Foreman Smart-Proxy}
   gem.description   = <<-EOS
     Chef support for Foreman Smart-Proxy
