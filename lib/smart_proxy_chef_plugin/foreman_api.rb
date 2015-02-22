@@ -5,6 +5,7 @@ module ChefPlugin
   class ForemanApi < ::Sinatra::Base
     helpers ::Proxy::Helpers
     authorize_with_trusted_hosts
+    authorize_with_ssl_client
 
     error Proxy::Error::BadRequest do
       log_halt(400, "Bad request : " + env['sinatra.error'].message )

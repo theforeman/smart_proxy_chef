@@ -4,6 +4,7 @@ require 'smart_proxy_chef_plugin/resources/client'
 module ChefPlugin
   class ChefApi < ::Sinatra::Base
     helpers ::Proxy::Helpers
+    authorize_with_ssl_client
 
     get "/nodes/:fqdn" do
       logger.debug "Showing node #{params[:fqdn]}"
