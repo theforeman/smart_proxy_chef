@@ -1,15 +1,16 @@
+require 'smart_proxy_chef_plugin/connection_helper'
+require 'digest/sha2'
+require 'base64'
+require 'openssl'
+
 module ChefPlugin
   class Authentication
-    require 'smart_proxy_chef_plugin/resources/client'
-    require 'digest/sha2'
-    require 'base64'
-    require 'openssl'
+    include ConnectionHelper
 
-    def verify_signature_request(client_name,signature,body)
-      #We need to retrieve client public key
-      #to verify signature
+    def verify_signature_request(client_name, signature,body)
+      #We need to retrieve client public key to verify signature
       begin
-        client = Resources::Client.new.show(client_name)
+        client = get_connection.clients.fetch(client_name)
       rescue Timeout::Error, Errno::EINVAL, Errno::ECONNRESET, EOFError,
         Net::HTTPBadResponse, Net::HTTPHeaderSyntaxError, Net::ProtocolError,
         Errno::ECONNREFUSED, OpenSSL::SSL::SSLError => e
