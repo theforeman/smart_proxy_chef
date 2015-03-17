@@ -2,9 +2,11 @@ require 'proxy/request'
 require 'smart_proxy_chef_plugin/authentication'
 
 module ChefPlugin
+  ::Sinatra::Base.register Authentication
+
   class ForemanApi < ::Sinatra::Base
     helpers ::Proxy::Helpers
-    authorize_with_trusted_hosts
+    authenticate_with_chef_signature
 
     error Proxy::Error::BadRequest do
       log_halt(400, "Bad request : " + env['sinatra.error'].message )
@@ -16,15 +18,30 @@ module ChefPlugin
 
     post "/hosts/facts" do
       logger.debug 'facts upload request received'
-      ChefPlugin::Authentication.new.authenticated(request) do |content|
-        Proxy::HttpRequest::Facts.new.post_facts(content)
-      end
+      foreman_response = Proxy::HttpRequest::Facts.new.post_facts(get_content)
+      log_result(foreman_response)
     end
 
     post "/reports" do
       logger.debug 'report upload request received'
-      ChefPlugin::Authentication.new.authenticated(request) do |content|
-        Proxy::HttpRequest::Reports.new.post_report(content)
+      foreman_response = Proxy::HttpRequest::Reports.new.post_report(get_content)
+      log_result(foreman_response)
+    end
+
+    private
+
+    def get_content
+      input = request.env['rack.input']
+      input.rewind
+      input.read
+    end
+
+    def log_result(foreman_response)
+      code = foreman_response.code.to_i
+      if code >= 200 && code < 300
+        logger.debug "upload forwarded to Foreman successfully, response was #{code}"
+      else
+        logger.error "forwarding failed, Foreman responded with #{code}, check Foreman access and production logs for more details"
       end
     end
   end
