@@ -18,7 +18,7 @@ And then execute:
 
 Or install it yourself as:
 
-    $ gem install smart-proxy-chef
+    $ gem install smart_proxy_chef
 
 ## Usage
 
@@ -28,7 +28,7 @@ smart-proxy config/settings.d/ directory.
 
 ## Contributing
 
-1. Fork it ( https://github.com/[my-github-username]/smart-proxy-chef/fork )
+1. Fork it ( https://github.com/[my-github-username]/smart_proxy_chef/fork )
 2. Create your feature branch (`git checkout -b my-new-feature`)
 3. Commit your changes (`git commit -am 'Add some feature'`)
 4. Push to the branch (`git push origin my-new-feature`)
