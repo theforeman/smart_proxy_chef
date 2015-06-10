@@ -5,9 +5,20 @@ require 'smart_proxy_chef_plugin/authentication'
 require 'net/https'
 
 class AuthenticationChefTest < Test::Unit::TestCase
-  def setup
-    @chefauth = ChefPlugin::Authentication.new
+  class Dummy
+    include ChefPlugin::ConnectionHelper
+    include ChefPlugin::Authentication::InstanceMethods
 
+    def logger
+      @logger ||= Logger.new(StringIO.new)
+    end
+
+    def log_halt(*args)
+      throw :halt
+    end
+  end
+
+  def setup
     ::ChefPlugin::Plugin.settings.stubs(:chef_server_url).returns('https://chef.example.com')
     ::ChefPlugin::Plugin.settings.stubs(:chef_smartproxy_clientname).returns('testnode1')
     ::ChefPlugin::Plugin.settings.stubs(:chef_smartproxy_privatekey).returns('test/fixtures/authentication/testnode1.priv')
@@ -25,46 +36,42 @@ class AuthenticationChefTest < Test::Unit::TestCase
     @signature = Base64.encode64(testnode1_key.sign(OpenSSL::Digest::SHA256.new,hash_body)).gsub("\n",'')
   end
 
-  def test_signing_and_checking_with_same_key_sould_work
+  test 'signing_and_checking_with_same_key_sould_work' do
+    chefauth = Dummy.new
     # We need to mock chef-server response
     response = '{"public_key":"'+@testnode1_pubkey+'","name":"testnode1","admin":false,"validator":false,"json_class":"Chef::ApiClient","chef_type":"client"}'
-    stub_request(:get, "https://chef.example.com//clients/testnode1").
+    stub_request(:get, "https://chef.example.com/clients/testnode1").
         to_return(:body => response.to_s, :headers => {'content-type' => 'application/json'} )
 
-    assert(@chefauth.verify_signature_request('testnode1',@signature,@mybody), "Signing and checking with same key should pass")
+    chefauth.expects(:log_halt).never
+    assert(chefauth.verify_signature_request('testnode1', @signature, @mybody), "Signing and checking with same key should pass")
   end
 
-  def test_signing_and_checking_with_2_different_keys_sould_not_work
+  test 'signing_and_checking_with_2_different_keys_sould_not_work' do
+    chefauth = Dummy.new
     # We mock chef-server response but with a wrong publick key to make signature check fail
     response = '{"public_key":"'+@testnode2_pubkey+'","name":"testnode1","admin":false,"validator":false,"json_class":"Chef::ApiClient","chef_type":"client"}'
-    stub_request(:get, "https://chef.example.com//clients/testnode1").
+    stub_request(:get, "https://chef.example.com/clients/testnode1").
         to_return(:body => response.to_s, :headers => {'content-type' => 'application/json'} )
 
-    assert_equal(false,@chefauth.verify_signature_request('testnode1',@signature,@mybody), "Signing and checking with different keys should not pass")
+    refute(chefauth.verify_signature_request('testnode1', @signature, @mybody), "Signing and checking with different keys should not pass")
   end
 
-  def test_auth_disabled_should_always_success
+  test 'auth_disabled_should_always_succeed' do
+    chefauth = Dummy.new
     ChefPlugin::Plugin.settings.stubs(:chef_authenticate_nodes).returns(false)
     s = StringIO.new('Hello')
     request = Sinatra::Request.new(env={'rack.input' => s})
-    result = @chefauth.authenticated(request) do |content|
-      true
-    end
-
-    assert(result)
+    assert chefauth.authenticate_chef_signature(request)
   end
 
-  def test_auth_enable_without_headers_should_raise_an_error
+  test 'auth_enable_without_headers_should_raise_an_error' do
+    chefauth = Dummy.new
     ChefPlugin::Plugin.settings.stubs(:chef_authenticate_nodes).returns(true)
     s = StringIO.new('Hello')
     request = Sinatra::Request.new(env={'rack.input' => s})
-    begin
-      result = @chefauth.authenticated(request) do |content|
-        true
-      end
-    rescue Proxy::Error::Unauthorized => e
-      assert(e.is_a? Proxy::Error::Unauthorized)
+    assert_throws :halt do
+      refute chefauth.authenticate_chef_signature(request)
     end
-    assert_equal(nil,result)
   end
 end

@@ -1,4 +1,4 @@
-require "test/unit"
+require 'minitest/autorun'
 $: << File.join(File.dirname(__FILE__), '..', 'lib')
 require "mocha/setup"
 require "rack/test"
