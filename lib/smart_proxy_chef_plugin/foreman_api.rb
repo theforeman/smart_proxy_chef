@@ -1,4 +1,5 @@
 require 'proxy/request'
+require 'smart_proxy_chef_plugin/request'
 require 'smart_proxy_chef_plugin/authentication'
 
 module ChefPlugin
@@ -18,13 +19,13 @@ module ChefPlugin
 
     post "/hosts/facts" do
       logger.debug 'facts upload request received'
-      foreman_response = Proxy::HttpRequest::Facts.new.post_facts(get_content)
+      foreman_response = ChefPlugin::HttpRequest::Facts.new.post_facts(get_content)
       log_result(foreman_response)
     end
 
     post "/reports" do
       logger.debug 'report upload request received'
-      foreman_response = Proxy::HttpRequest::Reports.new.post_report(get_content)
+      foreman_response = ChefPlugin::HttpRequest::Reports.new.post_report(get_content)
       log_result(foreman_response)
     end
 
