@@ -20,7 +20,6 @@ Gem::Specification.new do |gem|
   gem.license = 'GPLv3'
 
   gem.add_development_dependency "bundler", "~> 1.7"
-  gem.add_development_dependency "rake", "~> 10.0"
   gem.add_development_dependency('test-unit', '~> 2')
   gem.add_development_dependency('mocha', '~> 1')
   gem.add_development_dependency('webmock', '~> 1')
