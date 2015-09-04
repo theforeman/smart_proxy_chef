@@ -29,6 +29,7 @@ module ChefPlugin
 
         if (result = get_connection.send(plural).delete(params[:id]))
           logger.debug "#{name.capitalize} #{params[:id]} deleted"
+          { :result => result }.to_json
         else
           log_halt 400, "#{name.capitalize} #{params[:id]} could not be deleted" unless result
         end
