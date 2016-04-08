@@ -51,7 +51,7 @@ module ChefPlugin
     end
 
     def create_action(name, plural)
-      post "/#{plural}" do
+      post "/#{plural}/?" do
         logger.debug "Creating #{name} with parameters: " + params.inspect
 
         object = get_connection.send(plural).new(params[name])
