@@ -33,7 +33,14 @@ module ChefPlugin
 
       def authenticate_chef_signature(request)
         logger.debug('starting chef signature authentication')
-        content     = request.env["rack.input"].read
+        case request.request_method
+          when 'POST'
+            content = request.env["rack.input"].read
+          when 'GET'
+            content = request.env['HTTP_X_FOREMAN_CLIENT']
+          else
+            log_halt 401, "Don't know how to authenticate #{request.request_method} requests"
+        end
 
         auth = true
         if ChefPlugin::Plugin.settings.chef_authenticate_nodes
