@@ -6,15 +6,18 @@ module ChefPlugin
   ::Sinatra::Base.register Authentication
 
   class ForemanApi < ::Sinatra::Base
+    class BadRequest < StandardError; end
+    class Unauthorized < StandardError; end
+
     helpers ::Proxy::Helpers
     authenticate_with_chef_signature
 
-    error Proxy::Error::BadRequest do
-      log_halt(400, "Bad request : " + env['sinatra.error'].message )
+    error BadRequest do
+      log_halt(400, "Bad request: " + env['sinatra.error'].message )
     end
 
-    error Proxy::Error::Unauthorized do
-      log_halt(401, "Unauthorized : " + env['sinatra.error'].message )
+    error Unauthorized do
+      log_halt(401, "Unauthorized: " + env['sinatra.error'].message )
     end
 
     post "/hosts/facts" do
