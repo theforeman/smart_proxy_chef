@@ -13,5 +13,11 @@ module ChefPlugin
         send_request(request_factory.create_post('api/reports', report))
       end
     end
+
+    class Hosts < ::Proxy::HttpRequest::ForemanRequest
+      def host_enc(host)
+        send_request(request_factory.create_get("node/#{host}", { :format => 'yml' }))
+      end
+    end
   end
 end

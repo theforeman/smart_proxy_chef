@@ -1,6 +1,8 @@
 require 'proxy/request'
 require 'smart_proxy_chef_plugin/request'
 require 'smart_proxy_chef_plugin/authentication'
+require 'uri'
+require 'yaml'
 
 module ChefPlugin
   ::Sinatra::Base.register Authentication
@@ -30,6 +32,23 @@ module ChefPlugin
       logger.debug 'report upload request received'
       foreman_response = ChefPlugin::HttpRequest::Reports.new.post_report(get_content)
       log_result(foreman_response)
+    end
+
+    get '/enc/:client' do |client|
+      begin
+        if client != request.env['HTTP_X_FOREMAN_CLIENT']
+          log_halt(401, "Unauthorized : client '#{request.env['HTTP_X_FOREMAN_CLIENT']}' is asking for other client '#{client}' data")
+        end
+        content_type :json
+        result = ChefPlugin::HttpRequest::Hosts.new.host_enc(client)
+        log_result(result)
+        log_halt(500, "Could not fetch ENC for #{client}, see Foreman production.log for more details") unless result.code.to_s.start_with?('2')
+
+        yaml_enc = result.body
+        YAML.load(yaml_enc).to_json
+      rescue => e
+        log_halt 400, e
+      end
     end
 
     private
