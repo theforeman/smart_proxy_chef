@@ -15,6 +15,9 @@ module ChefPlugin
       end
 
       connection
+    rescue => e
+      logger.error "Unable to establish a connection to chef server because of #{e.message}"
+      raise e
     end
   end
 end
